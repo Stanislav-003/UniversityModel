@@ -1,0 +1,235 @@
+﻿<Window x:Class="UniversityModel.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UniversityModel" 
+        xmlns:converters="clr-namespace:UniversityModel.Converters"
+        Loaded="Window_Loaded" 
+        Title="University Management System" 
+        Height="450" 
+        Width="800">
+
+    <Grid Margin="10">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="5">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="Students" Grid.Row="0">
+                <ListBox ItemsSource="{Binding Students}"
+                         SelectedItem="{Binding SelectedStudent, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding FirstName}" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding LastName}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <Button Grid.Row="1"
+                    Content="Add Student"
+                    Command="{Binding OpenAddStudentCommand}"
+                    Height="35"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"/>
+
+            <Button Grid.Row="2"
+                    Content="Edit Student"
+                    Command="{Binding OpenEditStudentCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+
+            <Button Grid.Row="3"
+                    Content="Delete Student"
+                    Command="{Binding DeleteStudentCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+        </Grid>
+
+        <GroupBox Header="Student Details" 
+                  Grid.Column="1" 
+                  Margin="5">
+
+            <StackPanel DataContext="{Binding SelectedStudentDetails}">
+
+                <TextBlock Text="First Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding FirstName}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Last Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding LastName}" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Gender:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Gender}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Age:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Age}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Courses:" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ListBox ItemsSource="{Binding Courses}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical" Margin="5">
+                                <TextBlock Text="{Binding CourseName}" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding TeacherName, StringFormat='Teacher: {0}'}" Margin="10,0,0,0" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </StackPanel>
+        </GroupBox>
+
+        <Grid Grid.Column="2" Margin="5">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="Teachers" Grid.Row="0">
+                <ListBox ItemsSource="{Binding Teachers}"
+                         SelectedItem="{Binding SelectedTeacher, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding FirstName}" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding LastName}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <Button Grid.Row="1"
+                    Content="Add Teacher"
+                    Command="{Binding OpenAddTeacherCommand}"
+                    Height="35"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"/>
+
+            <Button Grid.Row="2"
+                    Content="Edit Teacher"
+                    Command="{Binding OpenEditTeacherCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+
+            <Button Grid.Row="3"
+                    Content="Delete Teacher"
+                    Command="{Binding DeleteTeacherCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+        </Grid>
+
+        <GroupBox Header="Teacher Details"
+                  Grid.Column="3"
+                  Margin="5">
+
+            <StackPanel DataContext="{Binding SelectedTeacherDetails}">
+
+                <TextBlock Text="First Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding FirstName}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Last Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding LastName}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Gender:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Gender}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Age:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Age}" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Courses:" FontWeight="Bold"/>
+                <ListBox ItemsSource="{Binding Courses}" />
+
+            </StackPanel>
+        </GroupBox>
+
+        <Grid Grid.Column="4" Margin="5">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="Courses" Grid.Row="0">
+                <ListBox ItemsSource="{Binding Courses}"
+                 SelectedItem="{Binding SelectedCourse, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <Button Grid.Row="1"
+                    Content="Add Course"
+                    Command="{Binding OpenAddCourseCommand}"
+                    Height="35"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Stretch"/>
+
+            <Button Grid.Row="2"
+                    Content="Edit Course"
+                    Command="{Binding OpenEditCourseCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+
+            <Button Grid.Row="3"
+                    Content="Delete Course"
+                    Command="{Binding DeleteCourseCommand}"
+                    Height="35"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"/>
+        </Grid>
+
+        <GroupBox Header="Course Details"
+                  Grid.Column="5"
+                  Margin="5">
+
+            <StackPanel DataContext="{Binding SelectedCourseDetails}">
+
+                <TextBlock Text="Course Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CourseName}"
+                   Margin="0,0,0,10"/>
+
+                <TextBlock Text="Teacher Name:" FontWeight="Bold"/>
+                <TextBlock Text="{Binding TeacherName}"/>
+            </StackPanel>
+        </GroupBox>
+
+    </Grid>
+</Window>
