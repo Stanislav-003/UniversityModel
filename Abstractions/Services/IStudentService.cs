@@ -6,5 +6,5 @@ public interface IStudentService : IBaseService<Student>
 {
     void Create(Student student);
     void Update(Student student);
-    void Remove(Guid id);
+    void Remove(Student student);
 }

@@ -6,5 +6,5 @@ public interface ICourseService : IBaseService<Course>
 {
     void Create(Course course);
     void Update(Course course);
-    void Remove(Guid id);
+    void Remove(int id);
 }

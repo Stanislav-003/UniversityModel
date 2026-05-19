@@ -11,30 +11,25 @@ namespace UniversityModel.ViewModels;
 [AddINotifyPropertyChangedInterface]
 public class EditTeacherViewModel
 {
-    private readonly ITeatcherService teacherService;
+    private readonly ITeacherService teacherService;
+    public Teacher EditingTeacher { get; set; } = new();
 
     public event Action<bool?>? RequestClose;
-
-    public Teatcher EditingTeacher { get; set; } = new();
-
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
 
-    public EditTeacherViewModel(ITeatcherService teacherService, Teatcher teacher)
+    public EditTeacherViewModel(ITeacherService teacherService, Teacher teacher)
     {
         this.teacherService = teacherService;
-
         PrepareModels(teacher);
-
         SaveCommand = new RelayCommand(Save);
         CancelCommand = new RelayCommand(Cancel);
     }
 
-    private void PrepareModels(Teatcher teacher)
+    private void PrepareModels(Teacher teacher)
     {
-        EditingTeacher = new Teatcher
+        EditingTeacher = new Teacher
         {
-            Id = teacher.Id,
             FirstName = teacher.FirstName,
             LastName = teacher.LastName,
             Age = teacher.Age,
@@ -48,20 +43,13 @@ public class EditTeacherViewModel
         {
             teacherService.Update(EditingTeacher);
 
-            MessageBox.Show(
-                "Teacher was edited successfully",
-                "Success",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            MessageBox.Show("Teacher was edited successfully", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
             RequestClose?.Invoke(true);
         }
         catch
         {
-            MessageBox.Show("Error while editing teacher",
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            MessageBox.Show("Error while editing teacher", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

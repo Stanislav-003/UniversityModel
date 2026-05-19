@@ -73,7 +73,7 @@
                   Grid.Column="1" 
                   Margin="5">
 
-            <StackPanel DataContext="{Binding SelectedStudentDetails}">
+            <StackPanel DataContext="{Binding SelectedStudent}">
 
                 <TextBlock Text="First Name:" FontWeight="Bold"/>
                 <TextBlock Text="{Binding FirstName}" Margin="0,0,0,10"/>
@@ -88,16 +88,7 @@
                 <TextBlock Text="{Binding Age}" Margin="0,0,0,10"/>
 
                 <TextBlock Text="Courses:" FontWeight="Bold" Margin="0,10,0,5"/>
-                <ListBox ItemsSource="{Binding Courses}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Vertical" Margin="5">
-                                <TextBlock Text="{Binding CourseName}" FontWeight="Bold"/>
-                                <TextBlock Text="{Binding TeacherName, StringFormat='Teacher: {0}'}" Margin="10,0,0,0" Foreground="Gray"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                <ListBox ItemsSource="{Binding DataContext.SelectedStudentCoursesWithTeachers, RelativeSource={RelativeSource AncestorType=Window}}" />
 
             </StackPanel>
         </GroupBox>
@@ -152,7 +143,7 @@
                   Grid.Column="3"
                   Margin="5">
 
-            <StackPanel DataContext="{Binding SelectedTeacherDetails}">
+            <StackPanel DataContext="{Binding SelectedTeacher}">
 
                 <TextBlock Text="First Name:" FontWeight="Bold"/>
                 <TextBlock Text="{Binding FirstName}" Margin="0,0,0,10"/>
@@ -167,7 +158,7 @@
                 <TextBlock Text="{Binding Age}" Margin="0,0,0,10"/>
 
                 <TextBlock Text="Courses:" FontWeight="Bold"/>
-                <ListBox ItemsSource="{Binding Courses}" />
+                <ListBox ItemsSource="{Binding DataContext.SelectedTeacherCourseNames, RelativeSource={RelativeSource AncestorType=Window}}" />
 
             </StackPanel>
         </GroupBox>
@@ -220,14 +211,14 @@
                   Grid.Column="5"
                   Margin="5">
 
-            <StackPanel DataContext="{Binding SelectedCourseDetails}">
+            <StackPanel DataContext="{Binding SelectedCourse}">
 
                 <TextBlock Text="Course Name:" FontWeight="Bold"/>
-                <TextBlock Text="{Binding CourseName}"
+                <TextBlock Text="{Binding Name}"
                    Margin="0,0,0,10"/>
 
                 <TextBlock Text="Teacher Name:" FontWeight="Bold"/>
-                <TextBlock Text="{Binding TeacherName}"/>
+                <TextBlock Text="{Binding DataContext.SelectedCourseTeacherName, RelativeSource={RelativeSource AncestorType=Window}}"/>
             </StackPanel>
         </GroupBox>
 

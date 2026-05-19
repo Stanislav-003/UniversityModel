@@ -1,12 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.IO;
 using System.Windows;
-using UniversityModel.Abstractions.Factories;
 using UniversityModel.Abstractions.Services;
-using UniversityModel.Factories;
 using UniversityModel.Helpers;
-using UniversityModel.Models;
 using UniversityModel.Services;
 using UniversityModel.ViewModels;
 
@@ -31,10 +27,10 @@ public partial class App : Application
             .ConfigureServices(services =>
             {
                 services.AddScoped<IStudentService, StudentService>();
-                services.AddScoped<ITeatcherService, TeatcherService>();
+                services.AddScoped<ITeacherService, TeacherService>();
                 services.AddScoped<ICourseService, CourseService>();
 
-                services.AddSingleton<IStorageFactory, StorageFactory>();
+                services.AddScoped<UniversityStorage>();
 
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();

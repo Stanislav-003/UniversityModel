@@ -13,28 +13,25 @@ namespace UniversityModel.ViewModels;
 public class AddCourseViewModel
 {
     private readonly ICourseService courseService;
+    public Course NewCourse { get; set; } = new();
+    public ObservableCollection<Teacher> Teachers { get; set; } = new();
+    public Teacher? SelectedTeacher { get; set; }
 
     public event Action<bool?>? RequestClose;
-    public Course NewCourse { get; set; } = new();
-    public ObservableCollection<Teatcher> Teachers { get; set; } = new();
-    public Teatcher? SelectedTeacher { get; set; }
-
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
 
-    public AddCourseViewModel(ICourseService courseService, IEnumerable<Teatcher> teachers)
+    public AddCourseViewModel(ICourseService courseService, IEnumerable<Teacher> teachers)
     {
         this.courseService = courseService;
-
         PrepareModels(teachers);
-
         SaveCommand = new RelayCommand(Save);
         CancelCommand = new RelayCommand(Cancel);
     }
 
-    private void PrepareModels(IEnumerable<Teatcher> teachers)
+    private void PrepareModels(IEnumerable<Teacher> teachers)
     {
-        Teachers = new ObservableCollection<Teatcher>(teachers);
+        Teachers = new ObservableCollection<Teacher>(teachers);
     }
 
     private void Save()
@@ -43,34 +40,33 @@ public class AddCourseViewModel
         {
             if (SelectedTeacher == null)
             {
-                MessageBox.Show(
-                    "Please select a teacher",
-                    "Validation",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
+                MessageBox.Show("Please select a teacher", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            NewCourse.TeacherId = SelectedTeacher.Id;
-
             courseService.Create(NewCourse);
 
-            MessageBox.Show(
-                "Course was created successfully",
-                "Success",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            if (!SelectedTeacher.CourseIds.Contains(NewCourse.Id))
+            {
+                SelectedTeacher.CourseIds.Add(NewCourse.Id);
+            }
+            
+            NewCourse.Teacher = SelectedTeacher;
+            
+            if (!SelectedTeacher.Courses.Contains(NewCourse))
+            {
+                SelectedTeacher.Courses.Add(NewCourse);
+            }
 
+            courseService.Update(NewCourse);
+
+            MessageBox.Show("Course was created successfully", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            
             RequestClose?.Invoke(true);
         }
         catch (Exception)
         {
-            MessageBox.Show(
-                "An error occurred while creating the course",
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            MessageBox.Show("An error occurred while creating the course", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

@@ -1,5 +1,4 @@
-﻿using UniversityModel.Abstractions.Factories;
-using UniversityModel.Abstractions.Services;
+﻿using UniversityModel.Abstractions.Services;
 using UniversityModel.Helpers;
 using UniversityModel.Models;
 
@@ -7,32 +6,66 @@ namespace UniversityModel.Services;
 
 public class CourseService : ICourseService
 {
-    private readonly JsonFileStorage<Course> storage;
+    private readonly UniversityStorage storage;
 
-    public CourseService(IStorageFactory factory)
+    public CourseService(UniversityStorage storage)
     {
-        storage = factory.Create<Course>();
+        this.storage = storage;
     }
 
     public void Create(Course course)
     {
-        course.Id = Guid.NewGuid();
-        storage.Add(course);
+        if (storage.Data.Courses.Any())
+        {
+            course.Id = storage.Data.Courses.Max(c => c.Id) + 1;
+        }
+        else
+        { 
+            course.Id = 1;
+        }
+
+        storage.Data.Courses.Add(course);
+        storage.Save();
     }
 
     public IEnumerable<Course> GetAll()
     {
-        return storage.GetAll();
+        return storage.Data.Courses;
     }
 
-    public Course? GetById(Guid id)
+    public Course? GetById(int id)
     {
-        return storage.Find(c => c.Id == id);
+        return storage.Data.Courses.FirstOrDefault(c => c.Id == id);
+    }
+
+    public void Remove(int id)
+    {
+        var course = GetById(id);
+
+        if (course == null)
+        { 
+            return;
+        }
+
+        if (course.Teacher != null)
+        {
+            course.Teacher.CourseIds.Remove(id);
+            course.Teacher.Courses.Remove(course);
+        }
+
+        foreach (var student in course.Students)
+        {
+            student.CourseIds.Remove(id);
+            student.Courses.Remove(course);
+        }
+
+        storage.Data.Courses.Remove(course);
+        storage.Save();
     }
 
     public void Update(Course course)
     {
-        var existing = storage.Find(x => x.Id == course.Id);
+        var existing = GetById(course.Id);
 
         if (existing == null)
         { 
@@ -40,13 +73,6 @@ public class CourseService : ICourseService
         }
 
         existing.Name = course.Name;
-        existing.TeacherId = course.TeacherId;
-
         storage.Save();
-    }
-
-    public void Remove(Guid id)
-    {
-        storage.Remove(c => c.Id == id);
     }
 }

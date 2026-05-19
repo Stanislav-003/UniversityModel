@@ -13,72 +13,44 @@ namespace UniversityModel.ViewModels;
 public class EditStudentViewModel
 {
     private readonly IStudentService studentService;
-
-    public event Action<bool?>? RequestClose;
-
     public Student EditingStudent { get; set; } = new();
-
     public ObservableCollection<CourseSelectableItem> AvailableCourses { get; set; } = new();
 
+    public event Action<bool?>? RequestClose;
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
 
     public EditStudentViewModel(IStudentService studentService, IEnumerable<Course> courses, Student student)
     {
         this.studentService = studentService;
-
         PrepareModels(courses, student);
-
         SaveCommand = new RelayCommand(Save);
         CancelCommand = new RelayCommand(Cancel);
     }
 
     private void PrepareModels(IEnumerable<Course> courses, Student student)
     {
-        EditingStudent = new Student
-        {
-            Id = student.Id,
-            FirstName = student.FirstName,
-            LastName = student.LastName,
-            Age = student.Age,
-            Gender = student.Gender,
-            CourseIds = new List<Guid>(student.CourseIds)
-        };
+        this.EditingStudent = student;
 
         AvailableCourses = new ObservableCollection<CourseSelectableItem>(
-            courses.Select(c => new CourseSelectableItem
-            {
-                Course = c,
-                IsSelected = EditingStudent.CourseIds.Contains(c.Id)
-            }));
+            courses.Select(c => new CourseSelectableItem { Course = c, IsSelected = EditingStudent.CourseIds.Contains(c.Id) }));
     }
 
     private void Save()
     {
         try
         {
-            EditingStudent.CourseIds = AvailableCourses
-                .Where(x => x.IsSelected)
-                .Select(x => x.Course.Id)
-                .ToList();
+            EditingStudent.CourseIds = AvailableCourses.Where(x => x.IsSelected).Select(x => x.Course.Id).ToList();
 
             studentService.Update(EditingStudent);
 
-            MessageBox.Show(
-                "Student was edited successfully",
-                "Success",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            MessageBox.Show("Student was edited successfully", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
             RequestClose?.Invoke(true);
         }
         catch (Exception)
         {
-            MessageBox.Show(
-                "An error occurred while editing the student",
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            MessageBox.Show("An error occurred while editing the student", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

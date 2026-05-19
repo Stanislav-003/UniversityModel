@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using UniversityModel.Abstractions.Services;
-using UniversityModel.DTOs;
 using UniversityModel.Helpers;
 using UniversityModel.Models;
 using UniversityModel.Views;
@@ -14,7 +13,7 @@ namespace UniversityModel.ViewModels;
 public class MainViewModel
 {
     private readonly ICourseService courseService;
-    private readonly ITeatcherService teatcherService;
+    private readonly ITeacherService teacherService;
     private readonly IStudentService studentService;
 
     public ICommand OpenAddStudentCommand { get; }
@@ -28,16 +27,16 @@ public class MainViewModel
     public ICommand DeleteCourseCommand { get; }
 
     public ObservableCollection<Student> Students { get; } = new();
-    public ObservableCollection<Teatcher> Teachers { get; } = new();
+    public ObservableCollection<Teacher> Teachers { get; } = new();
     public ObservableCollection<Course> Courses { get; } = new();
 
     public Student? SelectedStudent { get; set; }
-    public Teatcher? SelectedTeacher { get; set; }
+    public Teacher? SelectedTeacher { get; set; }
     public Course? SelectedCourse { get; set; }
 
-    public StudentDetails? SelectedStudentDetails { get; set; }
-    public TeacherDetails? SelectedTeacherDetails { get; set; }
-    public CourseDetails? SelectedCourseDetails { get; set; }
+    public ObservableCollection<string> SelectedStudentCoursesWithTeachers { get; } = new();
+    public ObservableCollection<string> SelectedTeacherCourseNames { get; } = new();
+    public string SelectedCourseTeacherName { get; set; } = string.Empty;
 
     private bool CanEditStudent() => SelectedStudent != null;
     private bool CanDeleteStudent() => SelectedStudent != null;
@@ -50,21 +49,19 @@ public class MainViewModel
 
     public MainViewModel(
         ICourseService courseService,
-        ITeatcherService teatcherService,
+        ITeacherService teatcherService,
         IStudentService studentService)
     {
         this.courseService = courseService;
-        this.teatcherService = teatcherService;
+        this.teacherService = teatcherService;
         this.studentService = studentService;
 
         OpenAddStudentCommand = new RelayCommand(OpenAddStudent);
         OpenEditStudentCommand = new RelayCommand(OpenEditStudent, CanEditStudent);
         DeleteStudentCommand = new RelayCommand(DeleteStudent, CanDeleteStudent);
-
         OpenAddTeacherCommand = new RelayCommand(OpenAddTeacher);
         OpenEditTeacherCommand = new RelayCommand(OpenEditTeacher, CanEditTeacher);
         DeleteTeacherCommand = new RelayCommand(DeleteTeacher, CanDeleteTeacher);
-
         OpenAddCourseCommand = new RelayCommand(OpenAddCourse);
         OpenEditCourseCommand = new RelayCommand(OpenEditCourse, CanEditCourse);
         DeleteCourseCommand = new RelayCommand(DeleteCourse, CanDeleteCourse);
@@ -77,131 +74,82 @@ public class MainViewModel
 
     private void UpdateAllData()
     {
-        var selectedStudentId = SelectedStudent?.Id;
-        var selectedTeacherId = SelectedTeacher?.Id;
-        var selectedCourseId = SelectedCourse?.Id;
+        var prevStudent = SelectedStudent;
+        var prevTeacher = SelectedTeacher;
+        var prevCourseId = SelectedCourse?.Id;
 
         LoadStudents();
         LoadTeatchers();
         LoadCourses();
 
-        SelectedStudent = selectedStudentId.HasValue ? Students.FirstOrDefault(s => s.Id == selectedStudentId) : null;
-        SelectedTeacher = selectedTeacherId.HasValue ? Teachers.FirstOrDefault(t => t.Id == selectedTeacherId) : null;
-        SelectedCourse = selectedCourseId.HasValue ? Courses.FirstOrDefault(c => c.Id == selectedCourseId) : null;
+        SelectedStudent = prevStudent != null ? Students.FirstOrDefault(s => s.FirstName == prevStudent.FirstName && s.LastName == prevStudent.LastName) : null;
+        SelectedTeacher = prevTeacher != null ? Teachers.FirstOrDefault(t => t.FirstName == prevTeacher.FirstName && t.LastName == prevTeacher.LastName) : null;
+        SelectedCourse = prevCourseId.HasValue ? Courses.FirstOrDefault(c => c.Id == prevCourseId) : null;
     }
 
     private void OnSelectedStudentChanged()
     {
+        SelectedStudentCoursesWithTeachers.Clear();
+
         if (SelectedStudent == null)
-        {
+        { 
             return;
         }
 
-        var details = new StudentDetails
+        foreach (var course in SelectedStudent.Courses)
         {
-            FirstName = SelectedStudent.FirstName,
-            LastName = SelectedStudent.LastName,
-            Age = SelectedStudent.Age,
-            Gender = SelectedStudent.Gender
-        };
-
-        foreach (var courseId in SelectedStudent.CourseIds)
-        {
-            var course = Courses.FirstOrDefault(c => c.Id == courseId);
-
-            if (course == null)
-            {
-                continue;
-            }
-
-            var teacher = Teachers.FirstOrDefault(t => t.Id == course.TeacherId);
-
-            var teacherName = "No Teacher";
-
-            if (teacher != null && teacher.FirstName != null && teacher.LastName != null)
-            {
-                teacherName = $"{teacher.FirstName} {teacher.LastName}";
-            }
-
-            details.Courses.Add(new CourseWithTeacherStepModel
-            {
-                CourseName = course.Name,
-                TeacherName = teacherName
-            });
+            var teacherName = course.Teacher != null ? $"{course.Teacher.FirstName} {course.Teacher.LastName}" : "Unknown";
+            SelectedStudentCoursesWithTeachers.Add($"{course.Name} (Teacher: {teacherName})");
         }
-
-        SelectedStudentDetails = details;
     }
     private void OnSelectedTeacherChanged()
     {
+        SelectedTeacherCourseNames.Clear();
+
         if (SelectedTeacher == null)
-        {
+        { 
             return;
         }
 
-        var details = new TeacherDetails
+        foreach (var course in SelectedTeacher.Courses)
         {
-            FirstName = SelectedTeacher.FirstName,
-            LastName = SelectedTeacher.LastName,
-            Age = SelectedTeacher.Age,
-            Gender = SelectedTeacher.Gender
-        };
-
-        var teacherCourses = Courses.Where(c => c.TeacherId == SelectedTeacher.Id);
-
-        foreach (var course in teacherCourses)
-        {
-            details.Courses.Add(course.Name);
+            SelectedTeacherCourseNames.Add(course.Name);
         }
-
-        SelectedTeacherDetails = details;
     }
+
     private void OnSelectedCourseChanged()
     {
         if (SelectedCourse == null)
         {
+            SelectedCourseTeacherName = string.Empty;
             return;
         }
 
-        var teacher = Teachers.FirstOrDefault(t => t.Id == SelectedCourse.TeacherId);
-
-        var teacherName = "No Teacher";
-
-        if (teacher != null && teacher.FirstName != null && teacher.LastName != null)
+        if (SelectedCourse.Teacher != null)
         {
-            teacherName = $"{teacher.FirstName} {teacher.LastName}";
+            SelectedCourseTeacherName = $"{SelectedCourse.Teacher.FirstName} {SelectedCourse.Teacher.LastName}";
         }
-
-        SelectedCourseDetails = new CourseDetails
+        else
         {
-            CourseName = SelectedCourse.Name,
-            TeacherName = teacherName
-        };
+            SelectedCourseTeacherName = "Unknown";
+        }
     }
 
     private void OpenAddStudent()
     {
         var viewModel = new AddStudentViewModel(studentService, Courses);
-
         var window = new AddStudentView();
-
         window.BindViewModel(viewModel);
-
         window.ShowDialog();
-
         UpdateAllData();
     }
 
     private void OpenAddCourse()
     {
         var viewModel = new AddCourseViewModel(courseService, Teachers);
-
         var window = new AddCourseView();
-
         window.BindViewModel(viewModel);
-
         window.ShowDialog();
-
         UpdateAllData();
     }
 
@@ -213,13 +161,9 @@ public class MainViewModel
         }
 
         var viewModel = new EditStudentViewModel(studentService, Courses, SelectedStudent);
-
         var window = new EditStudentView();
-
         window.BindViewModel(viewModel);
-
         window.ShowDialog();
-
         UpdateAllData();
     }
 
@@ -230,17 +174,10 @@ public class MainViewModel
             return;
         }
 
-        var viewModel = new EditCourseViewModel(
-            courseService,
-            Teachers,
-            SelectedCourse);
-
+        var viewModel = new EditCourseViewModel(courseService, Teachers, SelectedCourse);
         var window = new EditCourseView();
-
         window.BindViewModel(viewModel);
-
         window.ShowDialog();
-
         UpdateAllData();
     }
 
@@ -251,11 +188,7 @@ public class MainViewModel
             return;
         }
 
-        var result = MessageBox.Show(
-            $"Are you sure you want to delete course {SelectedCourse.Name}?",
-            "Confirm delete",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        var result = MessageBox.Show($"Are you sure you want to delete course {SelectedCourse.Name}?", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result != MessageBoxResult.Yes)
         {
@@ -265,8 +198,7 @@ public class MainViewModel
         courseService.Remove(SelectedCourse.Id);
 
         SelectedCourse = null;
-        SelectedCourseDetails = null;
-
+        SelectedCourseTeacherName = string.Empty;
         UpdateAllData();
     }
 
@@ -277,55 +209,17 @@ public class MainViewModel
             return;
         }
 
-        var result = MessageBox.Show(
-            $"Are you sure you want to delete {SelectedStudent.FirstName} {SelectedStudent.LastName}?",
-            "Confirm delete",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        var result = MessageBox.Show($"Are you sure you want to delete {SelectedStudent.FirstName} {SelectedStudent.LastName}?", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result != MessageBoxResult.Yes)
         {
             return;
         }
 
-        studentService.Remove(SelectedStudent.Id);
+        studentService.Remove(SelectedStudent);
 
         SelectedStudent = null;
-        SelectedStudentDetails = null;
-
-        UpdateAllData();
-    }
-
-    private void OpenAddTeacher()
-    {
-        var viewModel = new AddTeacherViewModel(teatcherService, Courses);
-
-        var window = new AddTeacherView();
-
-        window.BindViewModel(viewModel);
-
-        window.ShowDialog();
-
-        UpdateAllData();
-    }
-
-    private void OpenEditTeacher()
-    {
-        if (SelectedTeacher == null)
-        {
-            return;
-        }
-
-        var viewModel = new EditTeacherViewModel(
-            teatcherService,
-            SelectedTeacher);
-
-        var window = new EditTeacherView();
-
-        window.BindViewModel(viewModel);
-
-        window.ShowDialog();
-
+        SelectedStudentCoursesWithTeachers.Clear();
         UpdateAllData();
     }
 
@@ -336,22 +230,40 @@ public class MainViewModel
             return;
         }
 
-        var result = MessageBox.Show(
-            $"Are you sure you want to delete {SelectedTeacher.FirstName} {SelectedTeacher.LastName}?",
-            "Confirm delete",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        var result = MessageBox.Show($"Are you sure you want to delete {SelectedTeacher.FirstName} {SelectedTeacher.LastName}?", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result != MessageBoxResult.Yes)
         {
             return;
         }
 
-        teatcherService.Remove(SelectedTeacher.Id);
+        teacherService.Remove(SelectedTeacher);
 
         SelectedTeacher = null;
-        SelectedTeacherDetails = null;
+        SelectedTeacherCourseNames.Clear();
+        UpdateAllData();
+    }
 
+    private void OpenAddTeacher()
+    {
+        var viewModel = new AddTeacherViewModel(teacherService, Courses);
+        var window = new AddTeacherView();
+        window.BindViewModel(viewModel);
+        window.ShowDialog();
+        UpdateAllData();
+    }
+
+    private void OpenEditTeacher()
+    {
+        if (SelectedTeacher == null)
+        {
+            return;
+        }
+
+        var viewModel = new EditTeacherViewModel(teacherService, SelectedTeacher);
+        var window = new EditTeacherView();
+        window.BindViewModel(viewModel);
+        window.ShowDialog();
         UpdateAllData();
     }
 
@@ -376,7 +288,7 @@ public class MainViewModel
     {
         Teachers.Clear();
 
-        IEnumerable<Teatcher>? teachers = teatcherService.GetAll();
+        IEnumerable<Teacher>? teachers = teacherService.GetAll();
 
         if (teachers == null)
         {

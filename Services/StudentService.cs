@@ -1,5 +1,4 @@
-﻿using UniversityModel.Abstractions.Factories;
-using UniversityModel.Abstractions.Services;
+﻿using UniversityModel.Abstractions.Services;
 using UniversityModel.Helpers;
 using UniversityModel.Models;
 
@@ -7,50 +6,64 @@ namespace UniversityModel.Services;
 
 public class StudentService : IStudentService
 {
-    private readonly JsonFileStorage<Student> storage;
-
-    public StudentService(IStorageFactory factory)
-    {
-        storage = factory.Create<Student>();
+    private readonly UniversityStorage storage;
+    
+    public StudentService(UniversityStorage storage)
+    { 
+        this.storage = storage;
     }
 
     public void Create(Student student)
     {
-        student.Id = Guid.NewGuid();
-        storage.Add(student);
+        storage.Data.Persons.Add(student);
+
+        student.Courses = storage.Data.Courses.Where(c => student.CourseIds.Contains(c.Id)).ToList();
+        
+        foreach (var course in student.Courses)
+        {
+            if (!course.Students.Contains(student))
+            { 
+                course.Students.Add(student);
+            }    
+        }
+
+        storage.Save();
     }
 
     public IEnumerable<Student> GetAll()
     {
-        var students = storage.GetAll();
-        return students;
+        return storage.Data.Persons.OfType<Student>();
     }
 
-    public Student? GetById(Guid id)
+    public void Remove(Student student)
     {
-        var student = storage.Find(s => s.Id == id);
-        return student;
-    }
+        foreach (var course in student.Courses)
+        {
+            course.Students.Remove(student);
+        }
 
-    public void Remove(Guid id)
-    {
-        storage.Remove(s => s.Id == id);
+        storage.Data.Persons.Remove(student);
+        storage.Save();
     }
 
     public void Update(Student student)
     {
-        var existing = storage.Find(x => x.Id == student.Id);
+        student.Courses = storage.Data.Courses.Where(c => student.CourseIds.Contains(c.Id)).ToList();
 
-        if (existing == null)
-        { 
-            return;
+        foreach (var course in storage.Data.Courses)
+        {
+            if (student.CourseIds.Contains(course.Id))
+            {
+                if (!course.Students.Contains(student))
+                { 
+                    course.Students.Add(student);
+                }
+            }
+            else
+            {
+                course.Students.Remove(student);
+            }
         }
-
-        existing.FirstName = student.FirstName;
-        existing.LastName = student.LastName;
-        existing.Age = student.Age;
-        existing.Gender = student.Gender;
-        existing.CourseIds = student.CourseIds;
 
         storage.Save();
     }

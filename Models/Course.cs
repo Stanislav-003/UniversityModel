@@ -1,11 +1,17 @@
 ﻿using PropertyChanged;
+using Newtonsoft.Json;
 
 namespace UniversityModel.Models;
 
 [AddINotifyPropertyChangedInterface]
 public class Course
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public Guid TeacherId { get; set; }
+    
+    [JsonIgnore]
+    public Teacher Teacher { get; set; } = new();
+
+    [JsonIgnore]
+    public List<Student> Students { get; set; } = new();
 }
