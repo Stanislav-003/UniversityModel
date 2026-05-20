@@ -45,11 +45,6 @@ public class EditCourseViewModel
                 return;
             }
 
-            if (!SelectedTeacher.CourseIds.Contains(EditingCourse.Id))
-            {
-                SelectedTeacher.CourseIds.Add(EditingCourse.Id);
-            }
-
             EditingCourse.Teacher = SelectedTeacher;
             
             courseService.Update(EditingCourse);

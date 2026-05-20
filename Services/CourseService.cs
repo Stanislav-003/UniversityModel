@@ -73,6 +73,34 @@ public class CourseService : ICourseService
         }
 
         existing.Name = course.Name;
+
+        var newTeacher = course.Teacher;
+
+        var oldTeacher = storage.Data.Persons.OfType<Teacher>().FirstOrDefault(t => t.CourseIds.Contains(existing.Id));
+
+        if (oldTeacher != newTeacher)
+        {
+            if (oldTeacher != null)
+            {
+                oldTeacher.CourseIds.Remove(existing.Id);
+                oldTeacher.Courses.Remove(existing);
+            }
+
+            existing.Teacher = newTeacher;
+
+            if (newTeacher != null)
+            {
+                if (!newTeacher.CourseIds.Contains(existing.Id))
+                {
+                    newTeacher.CourseIds.Add(existing.Id);
+                }
+                if (!newTeacher.Courses.Contains(existing))
+                {
+                    newTeacher.Courses.Add(existing);
+                }
+            }
+        }
+
         storage.Save();
     }
 }

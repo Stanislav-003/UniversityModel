@@ -22,7 +22,7 @@ public class University
 
         foreach (var course in Courses)
         {
-            course.Teacher = Persons.OfType<Teacher>().FirstOrDefault(t => t.CourseIds.Contains(course.Id))!;
+            course.Teacher = Persons.OfType<Teacher>().FirstOrDefault(t => t.CourseIds.Contains(course.Id));
             course.Students = Persons.OfType<Student>().Where(s => s.CourseIds.Contains(course.Id)).ToList();
         }
     }
